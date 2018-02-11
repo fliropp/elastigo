@@ -7,8 +7,9 @@ import (
 )
 
 type Page struct {
-	Title string
-	Body  []byte
+	Title  string
+	Body   []byte
+	Author string
 }
 
 func (p *Page) save() error {
@@ -54,7 +55,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
-func main() {
+func semi_main() {
 	http.HandleFunc("/view/", viewHandler)
 	http.HandleFunc("/edit/", editHandler)
 	http.HandleFunc("/save/", saveHandler)
