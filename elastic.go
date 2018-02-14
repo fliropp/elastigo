@@ -44,23 +44,15 @@ const mapping = `
 	}
 }`
 
-func main_susp() {
+func makeOrCreateIndex(client *elastic.Client, index string) {
+
 	ctx := context.Background()
 
-	client, err := elastic.NewClient()
+	exists, err := client.IndexExists(index).Do(ctx)
 	if err != nil {
 		panic(err)
-	}
-
-	info, code, err := client.Ping("http://127.0.0.1:9200").Do(ctx)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Elasticsearch returned with code %d and version %s\n", code, info.Version.Number)
-
-	exists, err := client.IndexExists("msgz").Do(ctx)
-	if err != nil {
-		panic(err)
+	} else {
+		fmt.Printf("index exists...")
 	}
 
 	if !exists {
@@ -73,23 +65,32 @@ func main_susp() {
 			fmt.Printf("Could not create new ES index 'msg'")
 		}
 	}
+}
 
-	msg1 := Msg{User: "fliropp", Message: "Hey Ho, let's go!!", Title: "ES entry #1"}
+func addMsg(client *elastic.Client, msg Msg, id string) {
+	//msg1 := Msg{User: "fliropp", Message: "Hey Ho, let's go!!", Title: "ES entry #1"}
+	ctx := context.Background()
+
 	put1, err := client.Index().
 		Index("msgz").
 		Type("msg").
-		Id("1").
-		BodyJson(msg1).
+		Id(id).
+		BodyJson(msg).
 		Do(ctx)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Indexed msg %s to index %s, type %s\n", put1.Id, put1.Index, put1.Type)
+}
+
+func getMsg(client *elastic.Client, id string) {
+
+	ctx := context.Background()
 
 	get1, err := client.Get().
 		Index("msgz").
 		Type("msg").
-		Id("1").
+		Id(id).
 		Do(ctx)
 	if err != nil {
 		panic(err)
