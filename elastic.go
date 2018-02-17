@@ -8,11 +8,11 @@ import (
 	"gopkg.in/olivere/elastic.v6"
 )
 
-type Msg struct {
+type WikiEntry struct {
 	User    string                `json:"user"`
-	Message string                `json:"message"`
-	Created time.Time             `json:"created,omitempty"`
+	Body    string                `json:"body"`
 	Title   string                `json:"title"`
+	Created time.Time             `json:"created,omitempty"`
 	Suggest *elastic.SuggestField `json:"suggest_field,omitempty"`
 }
 
@@ -23,16 +23,21 @@ const mapping = `
 		"number_of_replicas": 0
 	},
 	"mappings":{
-		"msg":{
+		"wikiEntry":{
 			"properties":{
 				"user":{
 					"type":"keyword"
 				},
-				"message":{
+				"body":{
 					"type":"text",
 					"store": true,
 					"fielddata": true
 				},
+        "title":{
+          "type":"text",
+          "store":true,
+          "fielddata": true
+        },
 				"created":{
 					"type":"date"
 				},
@@ -44,21 +49,38 @@ const mapping = `
 	}
 }`
 
-func makeOrCreateIndex(client *elastic.Client, index string) {
+/*********GET ES CLIENT************/
+func getClient() *elastic.Client {
+	ctx := context.Background()
+	client, err := elastic.NewClient()
+	if err != nil {
+		panic(err)
+	}
+	info, code, err := client.Ping("http://127.0.0.1:9200").Do(ctx)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Elasticsearch returned with code %d and version %s\n", code, info.Version.Number)
+	return client
+}
+
+/**********VERIFY OR CREATE INDEX***********/
+func verifyIndex(client *elastic.Client, index string) {
 
 	ctx := context.Background()
 
 	exists, err := client.IndexExists(index).Do(ctx)
 	if err != nil {
-		panic(err)
-	} else {
-		fmt.Printf("index exists...")
+		fmt.Printf("failed to determine if index exists...")
 	}
 
 	if !exists {
-		newIndex, err := client.CreateIndex("msgz").BodyString(mapping).Do(ctx)
+
+		newIndex, err := client.CreateIndex(index).BodyString(mapping).Do(ctx)
 		if err != nil {
 			panic(err)
+		} else {
+			fmt.Printf("new index created . . . ")
 		}
 
 		if !newIndex.Acknowledged {
@@ -67,36 +89,38 @@ func makeOrCreateIndex(client *elastic.Client, index string) {
 	}
 }
 
-func addMsg(client *elastic.Client, msg Msg, id string) {
-	//msg1 := Msg{User: "fliropp", Message: "Hey Ho, let's go!!", Title: "ES entry #1"}
+/**********ADD ENTRY TO ES********************/
+func addWikiEntry(client *elastic.Client, entry WikiEntry, id string) {
+
 	ctx := context.Background()
 
-	put1, err := client.Index().
-		Index("msgz").
-		Type("msg").
+	put, err := client.Index().
+		Index("wiki").
+		Type("wikiEntry").
 		Id(id).
-		BodyJson(msg).
+		BodyJson(entry).
 		Do(ctx)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Indexed msg %s to index %s, type %s\n", put1.Id, put1.Index, put1.Type)
+	fmt.Printf("Indexed wiki entry %s to index %s, type %s\n", put.Id, put.Index, put.Type)
 }
 
-func getMsg(client *elastic.Client, id string) {
+/************GET ENTRY BY ID FROM INDEX*****************/
+func getWikiEntry(client *elastic.Client, id string) {
 
 	ctx := context.Background()
 
-	get1, err := client.Get().
-		Index("msgz").
-		Type("msg").
+	get, err := client.Get().
+		Index("wiki").
+		Type("wikiEntry").
 		Id(id).
 		Do(ctx)
 	if err != nil {
 		panic(err)
 	}
 
-	if get1.Found {
-		fmt.Printf("Got document %s in version %d from index %s, type %s\n", get1.Id, get1.Version, get1.Index, get1.Type)
+	if get.Found {
+		fmt.Printf("Got document %s in version %d from index %s, type %s\n", get.Id, get.Version, get.Index, get.Type)
 	}
 }

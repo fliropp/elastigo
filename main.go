@@ -1,21 +1,11 @@
 package main
 
-import (
-	"context"
-	"fmt"
-
-	elastic "gopkg.in/olivere/elastic.v6"
-)
+import "net/http"
 
 func main() {
-	/*http.HandleFunc("/view/", viewHandler)
-	http.HandleFunc("/edit/", editHandler)
-	http.HandleFunc("/save/", saveHandler)
-	http.ListenAndServe(":8080", nil)*/
 
 	/* init elastic client */
-	ctx := context.Background()
-	client, err := elastic.NewClient()
+	/*client, err := elastic.NewClient()
 	if err != nil {
 		panic(err)
 	}
@@ -23,12 +13,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Elasticsearch returned with code %d and version %s\n", code, info.Version.Number)
+	fmt.Printf("Elasticsearch returned with code %d and version %s\n", code, info.Version.Number)*/
 
-	makeOrCreateIndex(client, "msgz")
-	getMsg(client, "1")
-	msg := Msg{User: "foobar", Message: "No no, let's stay at home!!", Title: "ES entry #2"}
-	addMsg(client, msg, "2")
-	getMsg(client, "2")
+	/* init controllers */
+	http.HandleFunc("/view/", viewHandler)
+	//http.HandleFunc("/edit/", editHandler)
+	//http.HandleFunc("/save/", saveHandler)
+	http.ListenAndServe(":8080", nil)
+
+	/*verifyIndex(client, "wiki")
+	entry := WikiEntry{User: "fliropp", Body: "wiki entry no3#", Title: "wiki#3"}
+	addWikiEntry(client, entry, "3")
+	getWikiEntry(client, "3")*/
 
 }
