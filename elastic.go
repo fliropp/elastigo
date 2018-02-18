@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -107,9 +109,10 @@ func addWikiEntry(client *elastic.Client, entry WikiEntry, id string) {
 }
 
 /************GET ENTRY BY ID FROM INDEX*****************/
-func getWikiEntry(client *elastic.Client, id string) {
+func getWikiEntry(client *elastic.Client, id string) (WikiEntry, error) {
 
 	ctx := context.Background()
+	var result WikiEntry
 
 	get, err := client.Get().
 		Index("wiki").
@@ -117,10 +120,20 @@ func getWikiEntry(client *elastic.Client, id string) {
 		Id(id).
 		Do(ctx)
 	if err != nil {
-		panic(err)
+		fmt.Printf("no entry fond for id - create entry...")
 	}
 
 	if get.Found {
-		fmt.Printf("Got document %s in version %d from index %s, type %s\n", get.Id, get.Version, get.Index, get.Type)
+		bytes, err := json.Marshal(get.Source)
+		if err != nil {
+			fmt.Printf("uable to marshal entry")
+		}
+		json.Unmarshal(bytes, &result)
+
+		fmt.Printf("Got document %s in version %d from index %s, type %s, title %s\n", get.Id, get.Version, get.Index, get.Type, result.Title)
+	} else {
+		return result, errors.New("no entry found...")
 	}
+	return result, nil
+
 }

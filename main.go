@@ -17,13 +17,14 @@ func main() {
 
 	/* init controllers */
 	http.HandleFunc("/view/", viewHandler)
-	//http.HandleFunc("/edit/", editHandler)
+	http.HandleFunc("/edit/", editHandler)
 	//http.HandleFunc("/save/", saveHandler)
 	http.ListenAndServe(":8080", nil)
 
 	/*verifyIndex(client, "wiki")
 	entry := WikiEntry{User: "fliropp", Body: "wiki entry no3#", Title: "wiki#3"}
-	addWikiEntry(client, entry, "3")
-	getWikiEntry(client, "3")*/
+	addWikiEntry(client, entry, "3")*/
+	//client := getClient()
+	//getWikiEntry(client, "3")
 
 }
