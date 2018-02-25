@@ -130,7 +130,7 @@ func getWikiEntry(client *elastic.Client, id string) (WikiEntry, error) {
 		}
 		json.Unmarshal(bytes, &result)
 
-		fmt.Printf("Got document %s in version %d from index %s, type %s, title %s\n", get.Id, get.Version, get.Index, get.Type, result.Title)
+		fmt.Printf("Got document %s in version %d from index %s, type %s, title %s, body %s\n", get.Id, get.Version, get.Index, get.Type, result.Title, result.Body)
 	} else {
 		return result, errors.New("no entry found...")
 	}

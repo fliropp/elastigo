@@ -2,13 +2,12 @@ package main
 
 import (
 	"html/template"
-	"io/ioutil"
 	"net/http"
 )
 
 type Page struct {
 	Title  string
-	Body   []byte
+	Body   string
 	Author string
 }
 
@@ -35,8 +34,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/edit/"+entry.Title, http.StatusFound)
 		return
 	}
-	body, _ := ioutil.ReadFile(entry.Body)
-	p := Page{Title: entry.Title, Body: body, Author: entry.User}
+	p := Page{Title: entry.Title, Body: entry.Body, Author: entry.User}
 	t, _ := template.ParseFiles("html/view.html")
 	t.Execute(w, p)
 
@@ -47,10 +45,9 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 	client := getClient()
 	entry, err := getWikiEntry(client, id)
 
-	p := &Page{Title: "add title...", Body: []byte("add body..."), Author: "add user..."}
+	p := &Page{Title: "add title...", Body: "add body...", Author: "add user..."}
 	if err == nil {
-		body, _ := ioutil.ReadFile(entry.Body)
-		p = &Page{Title: entry.Title, Body: body, Author: entry.User}
+		p = &Page{Title: entry.Title, Body: entry.Body, Author: entry.User}
 	}
 	t, _ := template.ParseFiles("html/edit.html")
 	t.Execute(w, p)
