@@ -119,21 +119,18 @@ func getWikiEntry(client *elastic.Client, id string) (WikiEntry, error) {
 		Type("wikiEntry").
 		Id(id).
 		Do(ctx)
+
 	if err != nil {
 		fmt.Printf("no entry fond for id - create entry...")
-	}
-
-	if get.Found {
-		bytes, err := json.Marshal(get.Source)
-		if err != nil {
-			fmt.Printf("uable to marshal entry")
-		}
-		json.Unmarshal(bytes, &result)
-
-		fmt.Printf("Got document %s in version %d from index %s, type %s, title %s, body %s\n", get.Id, get.Version, get.Index, get.Type, result.Title, result.Body)
-	} else {
 		return result, errors.New("no entry found...")
+	} else {
+		if get.Found {
+			bytes, err := json.Marshal(get.Source)
+			if err != nil {
+				fmt.Printf("uable to marshal entry")
+			}
+			json.Unmarshal(bytes, &result)
+		}
+		return result, nil
 	}
-	return result, nil
-
 }

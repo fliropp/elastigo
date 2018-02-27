@@ -9,6 +9,7 @@ type Page struct {
 	Title  string
 	Body   string
 	Author string
+	Id     string
 }
 
 /*func (p *Page) save() error {
@@ -31,10 +32,10 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	client := getClient()
 	entry, err := getWikiEntry(client, id)
 	if err != nil {
-		http.Redirect(w, r, "/edit/"+entry.Title, http.StatusFound)
+		http.Redirect(w, r, "/edit/"+id, http.StatusFound)
 		return
 	}
-	p := Page{Title: entry.Title, Body: entry.Body, Author: entry.User}
+	p := Page{Title: entry.Title, Body: entry.Body, Author: entry.User, Id: id}
 	t, _ := template.ParseFiles("html/view.html")
 	t.Execute(w, p)
 
@@ -44,19 +45,21 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Path[len("/edit/"):]
 	client := getClient()
 	entry, err := getWikiEntry(client, id)
-
-	p := &Page{Title: "add title...", Body: "add body...", Author: "add user..."}
+	p := &Page{Title: "add title...", Body: "add body...", Author: "add user...", Id: id}
 	if err == nil {
-		p = &Page{Title: entry.Title, Body: entry.Body, Author: entry.User}
+		p = &Page{Title: entry.Title, Body: entry.Body, Author: entry.User, Id: id}
 	}
 	t, _ := template.ParseFiles("html/edit.html")
 	t.Execute(w, p)
 }
 
-/*func saveHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/save/"):]
+func saveHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Path[len("/save/"):]
+	title := r.FormValue("title")
 	body := r.FormValue("body")
-	p := &Page{Title: title, Body: []byte(body)}
-	p.save()
-	http.Redirect(w, r, "/view/"+title, http.StatusFound)
-}*/
+	author := r.FormValue("author")
+
+	//p := &Page{Title: title, Body: body, Author: author, Id: id}
+	addWikiEntry(getClient(), WikiEntry{User: author, Body: body, Title: title}, id)
+	http.Redirect(w, r, "/view/"+id, http.StatusFound)
+}
