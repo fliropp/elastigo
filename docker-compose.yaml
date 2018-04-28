@@ -1,0 +1,21 @@
+version: '2.1'
+
+services:
+  app:
+    build: .
+    command: ["./elgoclient"]
+    expose:
+      - "8080"
+    restart: on-failure
+    depends_on:
+      elasticsearch:
+        condition: service_started
+
+  elasticsearch:
+    image: elasticsearch:latest
+    command: elasticsearch
+    expose:
+      - "9200"
+      - "9300"
+    volumes:
+      - "/tmp/esdata:/usr/share/elasticsearch/data"
